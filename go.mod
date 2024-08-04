@@ -1,4 +1,4 @@
-module example/web-service-gin
+module example/caffee-checkout
 
 go 1.22.5
 
