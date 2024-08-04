@@ -12,6 +12,12 @@ type menuItem struct {
 	Price float64 `json:"price"`
 }
 
+type newOrderItem struct {
+	Id    int64  `json:"id"`
+	Title string `json:"title"`
+	Count int64  `json:"count"`
+}
+
 type Order struct {
 	Id    int64       `json:"Id"`
 	Items []OrderItem `json:"menuItems"`
@@ -19,7 +25,7 @@ type Order struct {
 
 type OrderItem struct {
 	Title    string `json:"title"`
-	Quantity int    `json:"quantity"`
+	Quantity int64  `json:"quantity"`
 }
 
 func main() {
@@ -27,6 +33,7 @@ func main() {
 	router.GET("/orders", getOrders)
 
 	router.POST("/newOrder", newOrder)
+	router.POST("/addItem", addItem)
 	router.GET("/orders/:id", getOrderTotal)
 
 	router.Run("localhost:8080")
@@ -72,6 +79,7 @@ func getOrderTotal(c *gin.Context) {
 		var ID, err = strconv.ParseInt(id, 10, 64)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
 		}
 		if order.Id == ID {
 			for _, menuItem := range order.Items {
@@ -82,7 +90,6 @@ func getOrderTotal(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, total)
-	return
 }
 
 func getPrice(name string) (price float64) {
@@ -93,6 +100,16 @@ func getPrice(name string) (price float64) {
 		}
 	}
 
+	return
+}
+
+func getOrderById(id int64) (orderOut *Order) {
+	for i := 0; i < len(orders); i++ {
+		if orders[i].Id == id {
+			orderOut = &orders[i]
+			return
+		}
+	}
 	return
 }
 
@@ -107,6 +124,30 @@ func newOrder(c *gin.Context) {
 	orders = append(orders, newOrder)
 
 	c.IndentedJSON(http.StatusCreated, ID)
+}
+
+func addItem(c *gin.Context) {
+	var orderItem newOrderItem
+	if err := c.BindJSON(&orderItem); err != nil {
+		return
+	}
+
+	//var orderId int64 = orderItem.Id
+	currentOrder := getOrderById(orderItem.Id)
+	for _, item := range menuItems {
+		if item.Title == orderItem.Title {
+
+			orderItem := OrderItem{
+				Title:    orderItem.Title,
+				Quantity: orderItem.Count,
+			}
+
+			(*currentOrder).Items = append(currentOrder.Items, orderItem)
+
+		}
+	}
+
+	c.IndentedJSON(http.StatusCreated, currentOrder)
 }
 
 /* getAlbumByID locates the album whose ID value matches the id
