@@ -6,37 +6,59 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// album represents data about a record album.
-type album struct {
-	ID     string  `json:"id"`
-	Title  string  `json:"title"`
-	Artist string  `json:"artist"`
-	Price  float64 `json:"price"`
+type menuItem struct {
+	Title string  `json:"title"`
+	Price float64 `json:"price"`
+}
+
+type Order struct {
+	Id    int         `json:"Id"`
+	Items []OrderItem `json:"menuItems"`
+}
+
+type OrderItem struct {
+	Title    string `json:"title"`
+	Quantity int    `json:"quantity"`
 }
 
 func main() {
 	router := gin.Default()
-	router.GET("/albums", getAlbums)
-	router.POST("/albums", postAlbums)
-	router.GET("/albums/:id", getAlbumByID)
+	router.GET("/orders", getOrders)
+	//router.POST("/createOrder", createOrder)
+	//router.GET("/orders/:id", getOrderByID)
 
 	router.Run("localhost:8080")
 }
 
-// albums slice to seed record album data.
-var albums = []album{
-	{ID: "1", Title: "Blue Train", Artist: "John Coltrane", Price: 56.99},
-	{ID: "2", Title: "Jeru", Artist: "Gerry Mulligan", Price: 17.99},
-	{ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
+var menuItems = []menuItem{
+	{Title: "Americano", Price: 1.2},
+	{Title: "Cappuccino", Price: 2.1},
+	{Title: "Juice", Price: 2.5},
+	{Title: "Baguette", Price: 1.5},
+	{Title: "IceCream", Price: 3},
+	{Title: "Croissant", Price: 3},
 }
 
-// getAlbums responds with the list of all albums as JSON.
-func getAlbums(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, albums)
+var order1 = Order{
+	Id:    1,
+	Items: []OrderItem{{"Juice", 2}, {"Americano", 1}},
 }
 
-// postAlbums adds an album from JSON received in the request body.
-func postAlbums(c *gin.Context) {
+var order2 = Order{
+	Id:    2,
+	Items: []OrderItem{{"Cappuccino", 2}, {"Croissant", 1}},
+}
+
+var orders = []Order{order1, order2}
+
+// getOrders responds with the list of all orders as JSON.
+func getOrders(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, orders)
+}
+
+/* postAlbums adds an album from JSON received in the request body.
+func createOrder(c *gin.Context) {
+	return
 	var newAlbum album
 
 	// Call BindJSON to bind the received JSON to
@@ -65,3 +87,4 @@ func getAlbumByID(c *gin.Context) {
 	}
 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 }
+*/
