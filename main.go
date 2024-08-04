@@ -26,7 +26,7 @@ func main() {
 	router := gin.Default()
 	router.GET("/orders", getOrders)
 
-	//router.POST("/createOrder", createOrder)
+	router.POST("/newOrder", newOrder)
 	router.GET("/orders/:id", getOrderTotal)
 
 	router.Run("localhost:8080")
@@ -96,23 +96,20 @@ func getPrice(name string) (price float64) {
 	return
 }
 
-/* postAlbums adds an album from JSON received in the request body.
-func createOrder(c *gin.Context) {
-	return
-	var newAlbum album
-
-	// Call BindJSON to bind the received JSON to
-	// newAlbum.
-	if err := c.BindJSON(&newAlbum); err != nil {
-		return
+// adds a new order and returns the Id number.
+func newOrder(c *gin.Context) {
+	var ID int64 = int64(len(orders)) + 1
+	var newOrder Order = Order{
+		Id:    ID,
+		Items: []OrderItem{},
 	}
 
-	// Add the new album to the slice.
-	albums = append(albums, newAlbum)
-	c.IndentedJSON(http.StatusCreated, newAlbum)
+	orders = append(orders, newOrder)
+
+	c.IndentedJSON(http.StatusCreated, ID)
 }
 
-// getAlbumByID locates the album whose ID value matches the id
+/* getAlbumByID locates the album whose ID value matches the id
 // parameter sent by the client, then returns that album as a response.
 func getAlbumByID(c *gin.Context) {
 	id := c.Param("id")
