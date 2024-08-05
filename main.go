@@ -53,14 +53,10 @@ var order1 = Order{
 	Items: []OrderItem{{"Juice", 2}, {"Americano", 1}},
 }
 
-//total: 6.2
-
 var order2 = Order{
 	Id:    2,
 	Items: []OrderItem{{"Cappuccino", 2}, {"Croissant", 1}},
 }
-
-// total: 7.2
 
 var orders = []Order{order1, order2}
 
@@ -81,11 +77,11 @@ func getOrderTotal(c *gin.Context) {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
+
 		if order.Id == ID {
 			for _, menuItem := range order.Items {
 				total += getPrice(menuItem.Title) * float64(menuItem.Quantity)
 			}
-
 		}
 	}
 
@@ -99,7 +95,6 @@ func getPrice(name string) (price float64) {
 			return
 		}
 	}
-
 	return
 }
 
@@ -122,7 +117,6 @@ func newOrder(c *gin.Context) {
 	}
 
 	orders = append(orders, newOrder)
-
 	c.IndentedJSON(http.StatusCreated, ID)
 }
 
@@ -132,37 +126,17 @@ func addItem(c *gin.Context) {
 		return
 	}
 
-	//var orderId int64 = orderItem.Id
 	currentOrder := getOrderById(orderItem.Id)
 	for _, item := range menuItems {
 		if item.Title == orderItem.Title {
-
 			orderItem := OrderItem{
 				Title:    orderItem.Title,
 				Quantity: orderItem.Count,
 			}
 
 			(*currentOrder).Items = append(currentOrder.Items, orderItem)
-
 		}
 	}
 
 	c.IndentedJSON(http.StatusCreated, currentOrder)
 }
-
-/* getAlbumByID locates the album whose ID value matches the id
-// parameter sent by the client, then returns that album as a response.
-func getAlbumByID(c *gin.Context) {
-	id := c.Param("id")
-
-	// Loop over the list of albums, looking for
-	// an album whose ID value matches the parameter.
-	for _, a := range albums {
-		if a.ID == id {
-			c.IndentedJSON(http.StatusOK, a)
-			return
-		}
-	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
-}
-*/
