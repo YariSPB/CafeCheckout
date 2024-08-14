@@ -13,14 +13,15 @@ type menuItem struct {
 }
 
 type newOrderItem struct {
-	Id    int64  `json:"id"`
-	Title string `json:"title"`
-	Count int64  `json:"count"`
+	OrderId int64  `json:"orderid"`
+	Title   string `json:"title"`
+	Count   int64  `json:"count"`
 }
 
 type Order struct {
 	Id    int64       `json:"Id"`
 	Items []OrderItem `json:"menuItems"`
+	Total float64     `json:"total"`
 }
 
 type OrderItem struct {
@@ -31,9 +32,8 @@ type OrderItem struct {
 func main() {
 	router := gin.Default()
 	router.GET("/orders", getOrders)
-
 	router.POST("/newOrder", newOrder)
-	router.POST("/addItem", addItem)
+	router.POST("/addItem", addItemInOrder)
 	router.GET("/orders/:id", getOrderTotal)
 
 	router.Run("localhost:8080")
@@ -60,7 +60,7 @@ var order2 = Order{
 
 var orders = []Order{order1, order2}
 
-// getOrders responds with the list of all orders as JSON.
+// Get all orders as JSON.
 func getOrders(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, orders)
 }
@@ -68,9 +68,6 @@ func getOrders(c *gin.Context) {
 // get total for an order by Id
 func getOrderTotal(c *gin.Context) {
 	id := c.Param("id")
-	var total float64 = 0.0
-	// Loop over the list of orders, looking for
-	// an order whose ID value matches the parameter.
 	for _, order := range orders {
 		var ID, err = strconv.ParseInt(id, 10, 64)
 		if err != nil {
@@ -80,14 +77,15 @@ func getOrderTotal(c *gin.Context) {
 
 		if order.Id == ID {
 			for _, menuItem := range order.Items {
-				total += getPrice(menuItem.Title) * float64(menuItem.Quantity)
+				order.Total += getPrice(menuItem.Title) * float64(menuItem.Quantity)
 			}
+			c.IndentedJSON(http.StatusOK, order)
+			return
 		}
 	}
-
-	c.IndentedJSON(http.StatusOK, total)
 }
 
+// helper function
 func getPrice(name string) (price float64) {
 	for _, item := range menuItems {
 		if item.Title == name {
@@ -98,6 +96,7 @@ func getPrice(name string) (price float64) {
 	return
 }
 
+// helper function
 func getOrderById(id int64) (orderOut *Order) {
 	for i := 0; i < len(orders); i++ {
 		if orders[i].Id == id {
@@ -108,7 +107,7 @@ func getOrderById(id int64) (orderOut *Order) {
 	return
 }
 
-// adds a new order and returns the Id number.
+// create a new order and return its Id.
 func newOrder(c *gin.Context) {
 	var ID int64 = int64(len(orders)) + 1
 	var newOrder Order = Order{
@@ -120,13 +119,13 @@ func newOrder(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, ID)
 }
 
-func addItem(c *gin.Context) {
+func addItemInOrder(c *gin.Context) {
 	var orderItem newOrderItem
 	if err := c.BindJSON(&orderItem); err != nil {
 		return
 	}
 
-	currentOrder := getOrderById(orderItem.Id)
+	currentOrder := getOrderById(orderItem.OrderId)
 	for _, item := range menuItems {
 		if item.Title == orderItem.Title {
 			orderItem := OrderItem{
