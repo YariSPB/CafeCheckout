@@ -12,6 +12,15 @@ type menuItem struct {
 	Price float64 `json:"price"`
 }
 
+var menuItems = []menuItem{
+	{Title: "Americano", Price: 1.2},
+	{Title: "Cappuccino", Price: 2.1},
+	{Title: "Juice", Price: 2.5},
+	{Title: "Baguette", Price: 1.5},
+	{Title: "IceCream", Price: 3},
+	{Title: "Croissant", Price: 3},
+}
+
 type newOrderItem struct {
 	OrderId int64  `json:"orderid"`
 	Title   string `json:"title"`
@@ -29,25 +38,6 @@ type OrderItem struct {
 	Quantity int64  `json:"quantity"`
 }
 
-func main() {
-	router := gin.Default()
-	router.GET("/orders", getOrders)
-	router.POST("/newOrder", newOrder)
-	router.POST("/addItem", addItemInOrder)
-	router.GET("/orders/:id", getOrderTotal)
-
-	router.Run("localhost:8080")
-}
-
-var menuItems = []menuItem{
-	{Title: "Americano", Price: 1.2},
-	{Title: "Cappuccino", Price: 2.1},
-	{Title: "Juice", Price: 2.5},
-	{Title: "Baguette", Price: 1.5},
-	{Title: "IceCream", Price: 3},
-	{Title: "Croissant", Price: 3},
-}
-
 var order1 = Order{
 	Id:    1,
 	Items: []OrderItem{{"Juice", 2}, {"Americano", 1}},
@@ -60,6 +50,16 @@ var order2 = Order{
 
 var orders = []Order{order1, order2}
 
+func main() {
+	router := gin.Default()
+	router.GET("/orders", getOrders)
+	router.POST("/newOrder", newOrder)
+	router.POST("/addItem", addItemInOrder)
+	router.GET("/orders/:id", getOrderTotal)
+
+	router.Run("localhost:8080")
+}
+
 // Get all orders as JSON.
 func getOrders(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, orders)
@@ -68,13 +68,12 @@ func getOrders(c *gin.Context) {
 // get total for an order by Id
 func getOrderTotal(c *gin.Context) {
 	id := c.Param("id")
+	var ID, err = strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, err)
+		return
+	}
 	for _, order := range orders {
-		var ID, err = strconv.ParseInt(id, 10, 64)
-		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
-			return
-		}
-
 		if order.Id == ID {
 			for _, menuItem := range order.Items {
 				order.Total += getPrice(menuItem.Title) * float64(menuItem.Quantity)
